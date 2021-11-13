@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<!-- saved from url=(0063)https://ay2122s1-tic4001-f18-3.github.io/tp/DeveloperGuide.html -->
+<html lang="en-US"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+
+<!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Developer Guide | tp</title>
+<meta name="generator" content="Jekyll v3.9.0">
+<meta property="og:title" content="Developer Guide">
+<meta property="og:locale" content="en_US">
+<link rel="canonical" href="https://ay2122s1-tic4001-f18-3.github.io/tp/DeveloperGuide.html">
+<meta property="og:url" content="https://ay2122s1-tic4001-f18-3.github.io/tp/DeveloperGuide.html">
+<meta property="og:site_name" content="tp">
+<meta name="twitter:card" content="summary">
+<meta property="twitter:title" content="Developer Guide">
+<script type="application/ld+json">
+{"url":"https://ay2122s1-tic4001-f18-3.github.io/tp/DeveloperGuide.html","@type":"WebPage","headline":"Developer Guide","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="preconnect" href="https://fonts.gstatic.com/">
+    <link rel="preload" href="./Developer Guide _ tp_files/css" as="style" type="text/css" crossorigin="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="./Developer Guide _ tp_files/style.css">
+    <!-- start custom head snippets, customize with your own _includes/head-custom.html file -->
+
+<!-- Setup Google Analytics -->
+
+
+
+<!-- You can set your favicon here -->
+<!-- link rel="shortcut icon" type="image/x-icon" href="/tp/favicon.ico" -->
+
+<!-- end custom head snippets -->
+
+  </head>
+  <body _c_t_common="1" _c_t_j1="1">
+    <a id="skip-to-content" href="https://ay2122s1-tic4001-f18-3.github.io/tp/DeveloperGuide.html#content">Skip to the content.</a>
+
+    <header class="page-header" role="banner">
+      <h1 class="project-name">Developer Guide</h1>
+      <h2 class="project-tagline"></h2>
+      
+        <a href="https://github.com/AY2122S1-TIC4001-F18-3/tp" class="btn">View on GitHub</a>
+      
+      
+    </header>
+
+    <main id="content" class="main-content" role="main">
+      <h1 id="developer-guide">Developer Guide</h1>
+
+<h2 id="acknowledgements">Acknowledgements</h2>
+
+<p>Didn’t use any 3<sup>rd</sup> party libraries.</p>
+
+<p>Project’s GitHub repository is available <a href="https://github.com/AY2122S1-TIC4001-F18-3/tp">here</a>.</p>
+
+<h2 id="design--implementation">Design &amp; implementation</h2>
+
+<p><code class="language-plaintext highlighter-rouge">GtdThought</code> is a basic task data structure, which contains various properties that make sense to GTD flow:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>public class GtdThought {
+    private static final String INDEN = "  ";
+
+    private Stat status = Stat.NONE;
+    private final int[] lv = {0, 1, 2};
+    private int level = lv[0];
+    private String title;
+    private String note;
+    private Optional&lt;GtdThought&gt; parent = Optional.empty();
+    private ArrayList&lt;GtdThought&gt; children = new ArrayList&lt;&gt;();
+    private LocalDateTime creation;
+    private LocalDateTime due;
+    private LocalDateTime done;
+
+    private int id;
+    private int parentID = 0;
+    private int levelNo = 0;
+
+    public static int maxID = 0;
+</code></pre></div></div>
+<p>It has 3 levels from 0 - 2, which indicates its level of nesting. This is more clear when you print it out.</p>
+
+<p>e.g.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>1 a task in the Inbox with no subtask #lv 0
+2 [PROJ] Project                      #lv 0
+  2-1 [PROJ] SubProject 1             #lv 1
+    2-1-1 [NEXT] actionable todo      #lv 2      
+</code></pre></div></div>
+
+<hr>
+
+<p><code class="language-plaintext highlighter-rouge">GtdList</code> is the container that contains <code class="language-plaintext highlighter-rouge">GtdThought</code>, which also provides useful functionalities such as:</p>
+
+<ul>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">get()</code> which can input a String such “1”, “1-1”, “1-2-1” to refer to the correct <code class="language-plaintext highlighter-rouge">GtdThought</code></p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">print()</code> to print out the <code class="language-plaintext highlighter-rouge">GtdList</code> with ref_no. and indentation based on their nesting level.</p>
+  </li>
+  <li>
+    <p>it’s made to be streamable, just call <code class="language-plaintext highlighter-rouge">.stream()</code> then developers can use the frequent tools like <code class="language-plaintext highlighter-rouge">filter</code>, <code class="language-plaintext highlighter-rouge">map</code>, <code class="language-plaintext highlighter-rouge">reduce</code>, <code class="language-plaintext highlighter-rouge">forEach</code>.</p>
+  </li>
+</ul>
+
+<hr>
+<p>The program also adopts Command Pattern,which all Command 
+extends to parent <code class="language-plaintext highlighter-rouge">Command</code> class and must implement the <code class="language-plaintext highlighter-rouge">execute()</code> method.</p>
+
+<h3 id="uml">UML</h3>
+<p><img src="./Developer Guide _ tp_files/ClassDiagram.png" height = "500"></p>
+<p><img src="./Developer Guide _ tp_files/SeqDiagram.png" width = "600"></p>
+
+<h2 id="implementation">Implementation</h2>
+<h3 id="storage-save-feature">Storage save feature</h3>
+<p>Multiple hierarchies of <code class="language-plaintext highlighter-rouge">GtdThought</code> are saved to storage via conversion into a flatten list.
+<img src="./Developer Guide _ tp_files/SeqDiagram_StorageSave.png" width = "600"></p>
+
+<h2 id="testing-guide">Testing guide</h2>
+<h3 id="running-tests">Running tests</h3>
+<p>From IntelliJ, right click on the class/folder of interest and click Run Test</p>
+
+<h3 id="types-of-tests">Types of tests</h3>
+<p>This project mainly uses hybrids of unit and integration tests, checking multiple code units as well as how they are connected together
+e.g. <code class="language-plaintext highlighter-rouge">seedu.duke.parser.ParserTest</code>
+e.g. <code class="language-plaintext highlighter-rouge">seedu.duke.storage.GtdListEncoderTest</code>
+e.g. <code class="language-plaintext highlighter-rouge">seedu.duke.NextTest</code></p>
+
+<h2 id="product-scope">Product scope</h2>
+<h3 id="target-user-profile">Target user profile</h3>
+<p>Daily GTD users who are enthusiastic about organizing tasks digitally and being exceptionally productive. 
+Compared to tapping on the todo apps with GUI on their phones, they would prefer typing command lines for
+speed of the batch editing and minimum visual distractions.</p>
+
+<h3 id="value-proposition">Value proposition</h3>
+<p>Todo apps on the market generally target a broad customer base including light users, 
+which means the learning curve is low and hard core features are hidden to not overwhelm the new users; 
+They want the app to be flexible to accommodate more users who could use the app in their own ways, 
+which results in difficulties to set up a proper GTD flow and clutters due to extra features; 
+They have user-friendly interface and visual elements transiting with animation, 
+those designs are key attractions to many, however, for power users, UI, gestures, 
+animation may not be the most efficient and slower compared to old plain text entry.</p>
+
+<p>The value offered by Project Next is to offer a quick text entry and batch editing command line REPL 
+environment for the users who choose practicality over goofy aesthetics. Our product strictly follows 
+the GTD method to provide handy guides and workflow to empower users to stick with the rhythm to check 
+off tasks and accomplish life goals.</p>
+
+<h3 id="user-persona">User Persona</h3>
+
+<p>Alex is a 28-year old Project Manager who works at a software company. She overlooks multiple coding projects via GitHub. She is responsible to ensure all of them are on track to meet the release schedule. She often has an operational meeting in the morning to bring up daily deliverables and encountered issues. She meets and calls people in charge from different departments to check on the status of their work. If there is any issue in the progress, she may need to coordinate or make changes to the project planning.</p>
+
+<p>Being a productivity guru in the company, she has always been researching for better ways to manage her daily tasks. Presently she is a Get Things Done (GTD) enthusiast. By practicing with the methodology originally introduced by David Allen, she feels very empowered that she could get more work done rather than filling more dead todos lying in a list forever.</p>
+
+<p>Working in a tech company, she sure is tech savvy. She is constantly looking for new tools that would better suit her needs, e.g. enable her to note down ideas quickly, typing centric input experience etc.</p>
+
+<h2 id="user-stories">User Stories</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Version</th>
+      <th>As a …</th>
+      <th>I want to …</th>
+      <th>So that I can …</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>v1.0</td>
+      <td>GTD user</td>
+      <td>add task quickly</td>
+      <td>I could offload my mental burdens</td>
+    </tr>
+    <tr>
+      <td>v1.0</td>
+      <td>GTD user</td>
+      <td>list down all incomplete tasks</td>
+      <td>I could review them and plan</td>
+    </tr>
+    <tr>
+      <td>v1.0</td>
+      <td>experienced user</td>
+      <td>delete old tasks</td>
+      <td>the app does not get cluttered with unnecessary data</td>
+    </tr>
+    <tr>
+      <td>v1.0</td>
+      <td>Todo app user</td>
+      <td>set a task as DONE at completion</td>
+      <td>I can see my progress on my task achievement</td>
+    </tr>
+    <tr>
+      <td>v1.0</td>
+      <td>GTD user</td>
+      <td>set actionable tasks in my Inbox as NEXT</td>
+      <td>those tasks get removed from Inbox and allow me to refer to the Next list for action</td>
+    </tr>
+    <tr>
+      <td>v1.0</td>
+      <td>GTD user</td>
+      <td>set the actionable tasks in my Inbox that cannot be performed by me until relevant resources from someone else as WAIT</td>
+      <td>review them again in one place once I obtain the deliverables from the person in charge</td>
+    </tr>
+    <tr>
+      <td>v2.0</td>
+      <td>GTD user</td>
+      <td>set the non-actionable tasks in my Inbox that cannot be done in one step as PROJ</td>
+      <td>later I could plan for each project and dismantle them into a sequence of actionable tasks</td>
+    </tr>
+    <tr>
+      <td>v2.1</td>
+      <td>GTD user</td>
+      <td>move actionable tasks from Inbox to be under a specific project which it belongs to</td>
+      <td>I could clear my Inbox and have tasks grouped in a logical way</td>
+    </tr>
+    <tr>
+      <td>v3.0</td>
+      <td>GTD user</td>
+      <td>set due date for a task</td>
+      <td>it get focused for attention at a later date</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="non-functional-requirements">Non-Functional Requirements</h2>
+<ul>
+  <li>program shouldn’t just crash because user keys wrong words</li>
+  <li>program jar file should not rely on OS specific API, should run on OS with JDK 11</li>
+  <li>program should exit if the save file is corrupted</li>
+</ul>
+
+<h2 id="glossary">Glossary</h2>
+<ul>
+  <li><em>GTD</em> - <a href="https://todoist.com/productivity-methods/getting-things-done#what-is-gtd-a-brief-overview">Get Things Done</a></li>
+  <li><em>GtdThought</em> - the data structure of a task which has a Status, can have parent GtdThought which holds it or hold multiple GtdThought as children</li>
+  <li><em>GtdList</em> - a list that holds 0 to multiple GtdThought</li>
+</ul>
+
+<h2 id="instructions-for-manual-testing">Instructions for manual testing</h2>
+
+<p>If run using the <code class="language-plaintext highlighter-rouge">jar</code> file, program starts clean with no pre-loaded data.</p>
+
+<p>If clone the whole project directory, sample data would be included.</p>
+
+<h3 id="install">install</h3>
+
+<ol>
+  <li>Ensure that you have Java 11 or above installed</li>
+  <li>download the <code class="language-plaintext highlighter-rouge">.jar</code> file at <a href="https://github.com/AY2122S1-TIC4001-F18-3/tp/releases/tag/v3.0">this link release V3.0</a>  put to desired directory</li>
+  <li><code class="language-plaintext highlighter-rouge">cd</code> to the directory contains the <code class="language-plaintext highlighter-rouge">.jar</code> file</li>
+  <li>
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>java -jar tp.jar
+</code></pre></div>    </div>
+  </li>
+</ol>
+
+<p>Alternative way of installing the program:</p>
+<ol>
+  <li>
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git clone https://github.com/AY2122S1-TIC4001-F18-3/tp.git
+</code></pre></div>    </div>
+  </li>
+  <li>This way you will get pre-loaded sample tasks when start the program</li>
+  <li>You could open the folder as a project via IDE</li>
+</ol>
+
+<h3 id="get-started">get started</h3>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>list all
+list inbox
+</code></pre></div></div>
+
+<h3 id="add-a-task-to-inbox">add a task to inbox</h3>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>add this is a Task with Title
+add wait for SetCommand before testing
+add Use PlantUML for DG
+add brew install graphviz 
+add set up plugin in IDE
+add one sequence diagram for ListCommand
+add make UI for the app someday
+</code></pre></div></div>
+<h3 id="list-inbox-next-proj-wait-some-done">list [inbox, next, proj, wait, some, done]</h3>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>list inbox
+</code></pre></div></div>
+<h3 id="set-task-status-next-proj-wait-some-done">set task status [next, proj, wait, some, done]</h3>
+<p>Actionable command following one <code class="language-plaintext highlighter-rouge">list</code> for ref_no.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>set 3 proj
+list inbox
+set 1 3 next
+list inbox
+set 1 wait 
+</code></pre></div></div>
+<h3 id="move-tasks-from-inbox-to-be-under-a-project-via-proj-mode">move tasks from inbox to be under a project via <code class="language-plaintext highlighter-rouge">proj-mode</code></h3>
+<p>Suggest do <code class="language-plaintext highlighter-rouge">set</code> to mark the top level projects (no indentation) from the Inbox first, prior to enter <code class="language-plaintext highlighter-rouge">proj-mode</code> for arrangement.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>proj-mode
+_________________________________________________
+begin proj-mode &gt;&gt;&gt;
+use `#no #no .. -&gt; #no` to move from left to right
+
+inbox: ..................... proj:
+1 issue#53v1 ............... 1 [PROJ] tp
+2 merge PR about ListCmd ...... 1-1 [PROJ] features under me
+3 write tp agenda wk11 ........ 1-2 [PROJ] PR review
+4 call Alex ................... 1-3 [NEXT] call RT on parser
+5 but cat food ............. 2 [PROJ] quarterly meeting
+
+1 -&gt; 1-1
+2 3 -&gt; 2
+
+q
+end proj-mode &lt;&lt;&lt;
+</code></pre></div></div>
+<p>(the Exception handling for <code class="language-plaintext highlighter-rouge">proj-mode</code> yet made it into V3.0, incorrect arguments result in exiting <code class="language-plaintext highlighter-rouge">proj-mode</code> immediately)</p>
+
+<h3 id="mark-tasks-done">mark tasks done</h3>
+<p>another way to complete tasks other than <code class="language-plaintext highlighter-rouge">set</code> command.
+Actionable command following one <code class="language-plaintext highlighter-rouge">list</code> for ref_no.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>list proj
+done 1-1-1 1-1-2
+</code></pre></div></div>
+<h3 id="delete-task">delete task</h3>
+<p>Actionable command following one <code class="language-plaintext highlighter-rouge">list</code> for ref_no.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>list proj
+delete 1-2-1
+</code></pre></div></div>
+
+<h3 id="exit-the-program">exit the program</h3>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>bye
+</code></pre></div></div>
+
+
+      <footer class="site-footer">
+        
+          <span class="site-footer-owner"><a href="https://github.com/AY2122S1-TIC4001-F18-3/tp">tp</a> is maintained by <a href="https://github.com/AY2122S1-TIC4001-F18-3">AY2122S1-TIC4001-F18-3</a>.</span>
+        
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com/">GitHub Pages</a>.</span>
+      </footer>
+    </main>
+  
+
+<div id="fatkun-drop-panel">
+        <a id="fatkun-drop-panel-close-btn">×</a>
+            <div id="fatkun-drop-panel-inner">
+                <div class="fatkun-content">
+                    <svg class="fatkun-icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5892"><path d="M494.933333 782.933333c2.133333 2.133333 4.266667 4.266667 8.533334 6.4h8.533333c6.4 0 10.666667-2.133333 14.933333-6.4l2.133334-2.133333 275.2-275.2c8.533333-8.533333 8.533333-21.333333 0-29.866667-8.533333-8.533333-21.333333-8.533333-29.866667 0L533.333333 716.8V128c0-12.8-8.533333-21.333333-21.333333-21.333333s-21.333333 8.533333-21.333333 21.333333v588.8L249.6 475.733333c-8.533333-8.533333-21.333333-8.533333-29.866667 0-8.533333 8.533333-8.533333 21.333333 0 29.866667l275.2 277.333333zM853.333333 874.666667H172.8c-12.8 0-21.333333 8.533333-21.333333 21.333333s8.533333 21.333333 21.333333 21.333333H853.333333c12.8 0 21.333333-8.533333 21.333334-21.333333s-10.666667-21.333333-21.333334-21.333333z" p-id="5893"></path></svg>
+                    <div class="fatkun-title">Drag and Drop</div>
+                    <div class="fatkun-desc">The image will be downloaded</div>
+                </div>
+            </div>
+    </div></body></html>
